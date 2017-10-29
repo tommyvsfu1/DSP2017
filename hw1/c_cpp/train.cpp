@@ -1,11 +1,6 @@
 #include "hmm.h"
 #include <math.h>
 
-#define T 500000
-#define N 5
-
-double A[T][N], B[T][N], G[T][N], E[T-1][N][N];
-
 int main( int argc, char* argv[] ) {
 	// ./train iteration model_init.txt seq_model_01.txt model_01.txt
 	int iteration = atoi(argv[1]);
@@ -13,77 +8,114 @@ int main( int argc, char* argv[] ) {
 	HMM model;
 	loadHMM( &model, argv[2] );
 
-	#define a model.transition
-	#define b model.observation
+	while ( iteration-- ) {
 
-	char buff[T];
-	FILE *fp = open_or_die( argv[3], "r");
-	fread(buff, sizeof(char), T, fp);
-	fclose(fp);
+		double acc_init[MAX_STATE] = {0};
+		double acc_epsilon[MAX_STATE][MAX_STATE] = {{0}};
+		double acc_gamma[MAX_STATE] = {0};
+		double acc_gamma_k[MAX_OBSERV][MAX_STATE] = {{0}};
 
-	int data[T];
-	for( int i=0; i<T; i++ )
-		data[i] = buff[i] - 'A';
+		FILE *fp = open_or_die( argv[3], "r" );
+		char buff[MAX_SEQ];
+		int cnt = 0;
+		
+		while ( fscanf( fp, "%s", buff ) != EOF ) {
 
-	while( iteration-- ) {
+			int T = strlen(buff);
+			cnt++;
 
-		// calculate alpha
-		// double A[T][N];
-		for( int i=0; i<N; i++ )
-			A[0][i] = model.initial[i] * b[data[0]][i];
+			int data[MAX_SEQ];
+			for ( int i = 0; i < T; i++ )
+				data[i] = buff[i] - 'A';
 
-		for( int t=1; t<T; t++ ) {
-			for( int j=0; j<N; j++ ) {
-				A[t][j] = 1;
-				for( int i=0; i<N; i++ )
-					A[t][j] += A[t-1][i] * a[i][j];
-				A[t][j] *= b[data[t]][j];
-			}
-		}
-
-		double prob=0;
-		for( int i=0; i<N; i++ )
-			prob += A[T-1][i];
-
-		// calculate beta
-		// double B[T][N];
-		for( int i=0; i<N; i++ )
-			B[T-1][i] = 1;
-		for( int t=T-2; t>=0; t-- ) {
-			for( int i=0; i<N; i++ ) {
-				B[t][i] = 0;
-				for( int j=0; j<N; j++ )
-					B[t][i] += a[i][j] * b[data[t+1]][j] * B[t+1][j];
-			}
-		}
-
-		// calculate gamma
-		// double G[T][N];
-		for( int t=0; t<T; t++ )
-			for( int i=0; i<N; i++ )
-				G[t][i] = ( A[t][i] * B[t][i] ) / prob;
-
-		// calculate epsilon
-		// double E[T-1][N][N];
-		for( int t=0; t<T-1; t++ ) {
-			double numerator = 0;
-
-			for( int i=0; i<N; i++ )
-				for( int j=0; j<N; j++) {
-					E[t][i][j] = A[t][i] * a[i][j] * b[data[t+1]][j] * B[t+1][j];
-					numerator += E[t][i][j];
+			// calculate alpha
+			double A[MAX_SEQ][MAX_STATE] = {{0}};
+			for ( int t = 0; t < T; t++ ) {
+				for ( int j = 0; j < model.state_num; j++ ) {
+					if ( t == 0 ) {
+						A[t][j] = model.initial[j] * model.observation[data[0]][j];
+					}
+					else {
+						for ( int i = 0; i < model.state_num; i++ )
+							A[t][j] += A[t-1][i] * model.transition[i][j];
+						A[t][j] *= model.observation[data[t]][j];
+					}
 				}
+			}
 
-			for( int i=0; i<N; i++ )
-				for( int j=0; j<N; j++ )
-					E[t][i][j] /= numerator;
+			// calculate beta
+			double B[MAX_SEQ][MAX_STATE] = {{0}};
+			for ( int t = T-1; t >= 0; t-- ) {
+				for ( int i = 0; i < model.state_num; i++ ) {
+					if ( t == T-1 ) B[T-1][i] = 1;
+					else {
+						for ( int j = 0; j < model.state_num; j++ )
+							B[t][i] += model.transition[i][j] * model.observation[data[t+1]][j] * B[t+1][j];
+					}
+				}
+			}
+
+			// calculate gamma
+			double prob = 0;
+			for ( int i = 0; i < model.state_num; i++ )
+				prob += A[T-1][i];
+
+			double G[MAX_SEQ][MAX_STATE] = {{0}};
+			for ( int t = 0; t < T; t++ )
+				for ( int i = 0; i < model.state_num; i++ )
+					G[t][i] = ( A[t][i] * B[t][i] ) / prob;
+
+			// calculate epsilon
+			double E[MAX_SEQ][MAX_STATE][MAX_STATE] = {{{0}}};
+			for ( int t = 0; t < T-1; t++ ) {
+				double numerator = 0;
+
+				for ( int i = 0; i < model.state_num; i++ )
+					for ( int j = 0; j < model.state_num; j++) {
+						E[t][i][j] = A[t][i] * model.transition[i][j] * model.observation[data[t+1]][j] * B[t+1][j];
+						numerator += E[t][i][j];
+					}
+
+				for ( int i = 0; i < model.state_num; i++ )
+					for ( int j = 0; j < model.state_num; j++ )
+						E[t][i][j] /= numerator;
+			}
+
+			// accumulate gamma & epsilon
+			for ( int i = 0; i < model.state_num; i++ ) {
+				acc_init[i] += G[0][i];
+				for ( int t = 0; t < T; t++ ) {
+					acc_gamma[i] += G[t][i];
+					acc_gamma_k[data[t]][i] += G[t][i];
+					for ( int j = 0; j < model.state_num; j++)
+						acc_epsilon[i][j] += E[t][i][j];
+				}
+			}
+
 		}
+		fclose(fp);
 
 		// recalculate parameters
+		// printf("%d\n", cnt);
+		// recalculate pi
+		for ( int i = 0; i < model.state_num; i++ ) {
+			model.initial[i] = acc_init[i] / cnt;
+		}
+		// recalculate a
+		for ( int i = 0; i < model.state_num; i++ )
+			for ( int j = 0; j < model.state_num; j++ )
+				model.transition[i][j] = acc_epsilon[i][j] / acc_gamma[i];
+		// recalculate b
+		for ( int i = 0; i < model.state_num; i++ )
+			for ( int k = 0; k < model.observ_num; k++ )
+				model.observation[k][i] = acc_gamma_k[k][i] / acc_gamma[i];
 
 	}
 
-	dumpHMM( stderr, &model );
+
+	FILE fp = open_or_die(argv[4], "w");
+  dumpHMM(fp, &model);
+  fclose(fp);
 
 	return 0;
 }

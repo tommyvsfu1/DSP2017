@@ -7,6 +7,7 @@ TARGET=test_hmm
 
 all: $(TARGET)
 # type make/make all to compile test_hmm
+	g++ -O3 -Wall train.cpp -o train
 
 clean:
 	$(RM) $(TARGET)   # type make clean to remove the compiled file
