@@ -96,26 +96,22 @@ int main( int argc, char* argv[] ) {
 		fclose(fp);
 
 		// recalculate parameters
-		// printf("%d\n", cnt);
-		// recalculate pi
-		for ( int i = 0; i < model.state_num; i++ ) {
+		for ( int i = 0; i < model.state_num; i++ )
 			model.initial[i] = acc_init[i] / cnt;
-		}
-		// recalculate a
+
 		for ( int i = 0; i < model.state_num; i++ )
 			for ( int j = 0; j < model.state_num; j++ )
 				model.transition[i][j] = acc_epsilon[i][j] / acc_gamma[i];
-		// recalculate b
+
 		for ( int i = 0; i < model.state_num; i++ )
 			for ( int k = 0; k < model.observ_num; k++ )
 				model.observation[k][i] = acc_gamma_k[k][i] / acc_gamma[i];
 
 	}
 
-
-	FILE fp = open_or_die(argv[4], "w");
-  dumpHMM(fp, &model);
-  fclose(fp);
+	FILE *fp = open_or_die(argv[4], "w");
+  	dumpHMM(fp, &model);
+  	fclose(fp);
 
 	return 0;
 }
