@@ -3,7 +3,9 @@
 
 hw1/seq_model_*.txt
 hw1/model_*.txt
+hw1/modellist.txt
 hw1/result*.txt
+hw1/testing_*.txt
 
 hw1/train
 hw1/train.sh
