@@ -11,7 +11,7 @@ int main( int argc, char* argv[] ) {
 	char model_name[MODEL_MAX_NUM][256];
 	
 	// read models
-	FILE *list = open_or_die(argv[2], "r");
+	FILE *list = open_or_die(argv[1], "r");
 	int model_num = 0;
 	while ( fscanf( list, "%s", model_name[model_num] ) != EOF ) {
 		loadHMM( &model[model_num], model_name[model_num] );
@@ -20,9 +20,11 @@ int main( int argc, char* argv[] ) {
 	fclose(list);
 
 	// process testing data
-	FILE *testing_data = open_or_die(argv[3], "r");
-	FILE *result = open_or_die(argv[4], "w");
+	FILE *testing_data = open_or_die(argv[2], "r");
+	FILE *result = open_or_die(argv[3], "w");
+	FILE *ans = open_or_die("testing_answer.txt", "r");
 	char buff[MAX_SEQ];
+	double acc = 0, cnt = 0; 
 
 	while ( fscanf( testing_data, "%s", buff ) != EOF ) {
 
@@ -33,7 +35,7 @@ int main( int argc, char* argv[] ) {
 
 		// viterbi for each model
 		double max_prob = 0;
-		int ans = -1;
+		int max_num = -1;
 		for ( int x = 0; x < model_num; x++ ) {
 
 			// calculate delta
@@ -56,16 +58,23 @@ int main( int argc, char* argv[] ) {
 			for ( int i = 0; i < model[x].state_num; i++ )
 				if ( delta[T-1][i] > max_prob ) {
 					max_prob = delta[T-1][i];
-					ans = x;
+					max_num = x;
 				}
 
 		}
 
-		fprintf(result, "%s\n", model_name[ans]);
+		fscanf( ans, "%s", buff );
+		if( buff[7] == model_name[max_num][7] ) acc++;
+		cnt++; 
+
+		fprintf(result, "%s\n", model_name[max_num]);
 	}
 
 	fclose(testing_data);
 	fclose(result);
+	fclose(ans);
+
+	printf("acc: %f\n", (acc/cnt));
 
 	return 0;
 }
