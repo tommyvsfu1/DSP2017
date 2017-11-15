@@ -11,3 +11,5 @@ hw1/train
 hw1/train.sh
 hw1/test
 hw1/test.sh
+
+hw2-1/speechdata/*
