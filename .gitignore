@@ -13,3 +13,6 @@ hw1/test
 hw1/test.sh
 
 hw2-1/speechdata/*
+hw2-1/htk
+hw2-1/MFCC/*
+hw2-1/bin

@@ -1,1 +1,1 @@
-PATH=$PATH:"add your htk path here !!!"
+PATH=$PATH:"/usr/local/bin"
