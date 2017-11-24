@@ -3,7 +3,7 @@
 source set_htk_path.sh;
 
 config=lib/config.cfg
-proto=lib/proto
+proto=lib/proto15
 
 # set output path and file of HCompV
 init_mmf=hmmdef
