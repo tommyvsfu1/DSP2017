@@ -49,7 +49,7 @@ int main ( int argc, char **argv ) {
 
 		VocabString sen[maxWordsPerLine];
 		// parse a line into Chinese char (seperate by space)
-		unsigned len = Vocab::parseWords(line, sen[1], maxWordsPerLine) + 2;
+		unsigned len = Vocab::parseWords(line, &sen[1], maxWordsPerLine) + 2;
 
 		LogP prob[len][1024];
 		int candi_len[len];
@@ -83,10 +83,12 @@ int main ( int argc, char **argv ) {
 				LogP max = 0;
 				// check all candidates of sen[i-1]
 				for( int k = 0; k < candi_len[i-1]; k++) {
-					VocabString wj = Big5.getWord(candi[i][j]);
-					VocabString wk = Big5.getWord(candi[i-1][k]);
+					VocabString word_j = Big5.getWord(candi[i][j]);
+					VocabString word_k = Big5.getWord(candi[i-1][k]);
+					VocabIndex  idx_j = vocab.getIndex(word_j);
+					VocabIndex  idx_k = vocab.getIndex(word_k);
 					// Calculate P(sen[i]|sen[i+1])
-					LogP tmp = prob[i-1][k] + lm.wordProb( wj, wk );
+					LogP tmp = prob[i-1][k] + lm.wordProb( idx_j, &idx_k );
 					if ( tmp > max ) {
 						max = tmp;
 						backtrack[i][j] = k;
