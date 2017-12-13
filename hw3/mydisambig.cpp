@@ -41,6 +41,9 @@ int main ( int argc, char **argv ) {
 	lm.read(lmFile);
 	lmFile.close();
 
+	Big5.addWord("<s>");
+	Big5.addWord("</s>");
+
 	char *line;
 	while( line = textFile.getline() ) {
 
@@ -51,15 +54,18 @@ int main ( int argc, char **argv ) {
 		LogP prob[len][1024];
 		int candi_len[len];
 		VocabIndex candi[len][1024];	// index of Big5
-		VocabIndex backtrack[len][1024];
+		int backtrack[len][1024];
 
 		// Initialize
 		sen[0] = "<s>";
 		sen[len-1] = "</s>";
 		prob[0][0] = {{0.0}};
 
-		// Store all the candidate's index 
-		for ( int i = 1; i < len; i++ ) {
+		// Store all the candidate's index
+		candi_len[0] = candi_len[len-1] = 1;
+		candi[0][0] = Big5.getIndex("<s>");
+		candi[len-1][0] = Big5.getIndex("</s>");
+		for ( int i = 1; i < len-1; i++ ) {
 			VocabIndex index;	Prob p;		int cnt = 0;
 			VocabMapIter iter(map, ZhuYin.getIndex(sen[i]));
 			iter.init();
@@ -83,18 +89,26 @@ int main ( int argc, char **argv ) {
 					LogP tmp = prob[i-1][k] + lm.wordProb( wj, wk );
 					if ( tmp > max ) {
 						max = tmp;
-						backtrack[i][j] = candi[i-1][k];
+						backtrack[i][j] = k;
 					}
 				}
 				prob[i][j] = max;
 			}
 		}
 
-		// Find the max path
-
 		// Trace back
+		VocabString ans[len];
+		ans[0] = "<s>";
+		int prev_index = 0;
+		for( int i = len - 1; i > 0; i-- ) {
+			ans[i] = Big5.getWord( candi[i][prev_index] );
+			prev_index = backtrack[i][prev_index];
+		}
 
-		// Add <s> </s> and print
+		// print
+		for( int i = 0; i < len; i++ )
+			printf("%s ", ans[i]);
+		printf("\n");
 
 	}
 
