@@ -1,6 +1,6 @@
 # The following two variable will be commandline determined by TA
 # For testing, you could uncomment them.
-SRIPATH ?= /data/DSP_HW3/103_2/srilm-1.5.10
+SRIPATH ?= /Users/w4a2y4/Desktop/DSP/DSP2017/hw3/srilm-1.5.10
 MACHINE_TYPE ?= i686-m64
 LM ?= bigram.lm
 
