@@ -31,8 +31,8 @@ run:
 map:
 	@#TODO How to map?
 	@echo "Mapping!"
-	@./mapping $(FROM) $(TO)
-	@#python mapping.py $(FROM) $(TO)
+	@#./mapping $(FROM) $(TO)
+	@python mapping.py $(FROM) $(TO)
 	@#sh mapping.sh $(FROM) $(TO)
 	@#perl mapping.pl Big5-ZhuYin.map ZhuYin-Big5.map
 clean:

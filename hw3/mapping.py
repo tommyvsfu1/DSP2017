@@ -1,7 +1,8 @@
+import sys
 
 mapping = dict()
-fin = open("Big5-ZhuYin.map", 'r', encoding='big5-hkscs')
-fout = open("ZhuYin-Big5.map", 'w', encoding='big5-hkscs')
+fin = open(sys.argv[1], 'r', encoding='big5-hkscs')
+fout = open(sys.argv[2], 'w', encoding='big5-hkscs')
 
 for line in fin:
 

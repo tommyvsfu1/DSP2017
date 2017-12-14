@@ -8,8 +8,8 @@
 #include "VocabMap.h"
 #include "Prob.h"
 
-// Usage: ./disambig -text $file -map $map -lm $LM -order $order
-// Usage: ./disambig -text example.txt -map ZhuYin-Big5.map -lm bigram.lm -order 2
+// Usage: 	./disambig -text $file -map $map -lm $LM -order $order
+// Example: ./disambig -text example.txt -map ZhuYin-Big5.map -lm bigram.lm -order 2
 
 static unsigned order = 2;
 static char *lmFileName = 0;
@@ -94,6 +94,7 @@ int main ( int argc, char **argv ) {
 					VocabIndex  idx_j = vocab.getIndex(word_j);
 					VocabIndex  idx_k = vocab.getIndex(word_k);
 					// printf("%d %d ", idx_k, idx_j);
+					// deal with oov
 					if ( idx_j == Vocab_None ) idx_j = vocab.getIndex(Vocab_Unknown);
 					if ( idx_k == Vocab_None ) idx_k = vocab.getIndex(Vocab_Unknown);
 					// printf("%d %d ", idx_k, idx_j);
