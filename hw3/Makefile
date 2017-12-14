@@ -26,7 +26,7 @@ run:
 	@#TODO How to run your code toward different txt? 
 	@for i in $(shell seq 1 10) ; do \
             echo "Running $$i.txt"; \
-            ./mydisambig -text testdata/$$i.txt -map $(TO) -lm $(LM) -order 2 > result2/$$i.txt; \
+            ./mydisambig -text testdata/$$i.txt -map $(TO) -lm $(LM) -order 2 > result/$$i.txt; \
         done;
 map:
 	@#TODO How to map?

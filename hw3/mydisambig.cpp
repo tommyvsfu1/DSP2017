@@ -62,8 +62,6 @@ int main ( int argc, char **argv ) {
 		sen[len-1] = "</s>";
 		prob[0][0] = {{0.0}};
 
-		// printf("len = %d\n", len);
-
 		// Store all the candidate's index
 		candi_len[0] = candi_len[len-1] = 1;
 		candi[0][0] = Big5.getIndex("<s>");
@@ -73,12 +71,10 @@ int main ( int argc, char **argv ) {
 			VocabMapIter iter(map, ZhuYin.getIndex(sen[i]));
 			iter.init();
 			while( iter.next(index, p) ) {
-				// printf("%s ", Big5.getWord(index));
 				candi[i][cnt] = index;
 				cnt++;
 			}
 			candi_len[i] = cnt;
-			// printf("\n");
 		}
 
 		// do Viterbi recursion
@@ -90,19 +86,14 @@ int main ( int argc, char **argv ) {
 				for( int k = 0; k < candi_len[i-1]; k++) {
 					VocabString word_j = Big5.getWord(candi[i][j]);
 					VocabString word_k = Big5.getWord(candi[i-1][k]);
-					// printf("%s %s ", word_k, word_j);
 					VocabIndex  idx_j = vocab.getIndex(word_j);
 					VocabIndex  idx_k = vocab.getIndex(word_k);
-					// printf("%d %d ", idx_k, idx_j);
 					// deal with oov
 					if ( idx_j == Vocab_None ) idx_j = vocab.getIndex(Vocab_Unknown);
 					if ( idx_k == Vocab_None ) idx_k = vocab.getIndex(Vocab_Unknown);
-					// printf("%d %d ", idx_k, idx_j);
 					VocabIndex  arr[1];	arr[0] = idx_k;
 					// Calculate P(sen[i]|sen[i+1])
-					// printf("\t%f\n", lm.wordProb( idx_j, arr ));
 					LogP tmp = prob[i-1][k] + lm.wordProb( idx_j, arr );
-					// LogP tmp = prob[i-1][k];
 					if ( tmp > max ) {
 						max = tmp;
 						backtrack[i][j] = k;
